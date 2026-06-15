@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  claw-mcp-server:
+    build: ./backend
+    container_name: claw-mcp-server
+    restart: unless-stopped
+    ports:
+      - "9000:9000"
+    volumes:
+      # 将宿主机的 backend 目录映射到容器，方便开发热更
+      - ./backend:/app
+      # 将宿主机的 data/workspace 目录映射到容器的 /app/workspace
+      - ./data/workspace:/app/workspace
+    environment:
+      - TZ=Asia/Shanghai

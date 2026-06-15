@@ -1,0 +1,100 @@
+import os
+import markdown
+import pdfkit
+
+# 定义数据存储的根目录（容器内目录）
+WORKSPACE_DIR = "/app/workspace"
+
+# 确保工作目录存在
+os.makedirs(WORKSPACE_DIR, exist_ok=True)
+
+def convert_text_to_pdf(markdown_content: str, pdf_filename: str) -> str:
+    """
+    接收排版好的 Markdown 文本，并将其渲染转换为可打印的 PDF 文件保存。
+
+    Args:
+        markdown_content (str): 大模型整理排版后的 Markdown 格式纯文本内容。
+        pdf_filename (str): 目标输出文件名（例如 "homework.pdf"）。
+    """
+    # 强制将输出文件放到工作目录，防止跨目录写入
+    safe_filename = os.path.basename(pdf_filename)
+    output_path = os.path.join(WORKSPACE_DIR, safe_filename)
+
+    # 1. Markdown 转 HTML
+    # 开启 tables 和 sane_lists 扩展防止格式丢失
+    html_body = markdown.markdown(
+        markdown_content,
+        extensions=['tables', 'sane_lists', 'fenced_code']
+    )
+
+    # 2. 构建带中文字体样式的完整 HTML 骨架
+    html_template = f"""
+    <!DOCTYPE html>
+    <html lang="zh-CN">
+    <head>
+        <meta charset="UTF-8">
+        <title>PDF Document</title>
+        <style>
+            body {{
+                font-family: 'WenQuanYi Micro Hei', 'Noto Sans CJK SC', sans-serif;
+                font-size: 14px;
+                line-height: 1.8;
+                color: #333;
+                margin: 0 auto;
+            }}
+            table {{
+                border-collapse: collapse;
+                width: 100%;
+                margin-bottom: 20px;
+            }}
+            th, td {{
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }}
+            th {{
+                background-color: #f2f2f2;
+            }}
+            pre {{
+                background-color: #f8f8f8;
+                border: 1px solid #ddd;
+                padding: 10px;
+                overflow-x: auto;
+                border-radius: 4px;
+            }}
+            code {{
+                font-family: 'Courier New', Courier, monospace;
+            }}
+            blockquote {{
+                border-left: 4px solid #ccc;
+                margin: 0;
+                padding-left: 16px;
+                color: #666;
+            }}
+        </style>
+    </head>
+    <body>
+        {html_body}
+    </body>
+    </html>
+    """
+
+    # 3. 渲染 PDF
+    # options 需指定：纸张 A4、边距 0.75in、encoding 为 UTF-8
+    options = {
+        'page-size': 'A4',
+        'margin-top': '0.75in',
+        'margin-right': '0.75in',
+        'margin-bottom': '0.75in',
+        'margin-left': '0.75in',
+        'encoding': "UTF-8",
+        'custom-header' : [
+            ('Accept-Encoding', 'gzip')
+        ]
+    }
+
+    try:
+        pdfkit.from_string(html_template, output_path, options=options)
+        return f"转换成功！PDF 已准备就绪，保存在 {safe_filename}"
+    except Exception as e:
+        return f"转换失败：{str(e)}"
