@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-bullseye
 
 # 设置工作目录
 WORKDIR /app
@@ -6,15 +6,19 @@ WORKDIR /app
 # 设置环境变量防止 Python 缓冲输出
 ENV PYTHONUNBUFFERED=1
 
-# 安装目前所需的所有系统依赖（wkhtmltopdf, 字体等）
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# 必须先执行 update 才能找到包，这里直接暴力替换为清华源避免下载慢
+RUN sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || true \
+    && sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list.d/debian.sources 2>/dev/null || true \
+    && sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list 2>/dev/null || true \
+    && sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list 2>/dev/null || true \
+    && apt-get update && apt-get install -y --no-install-recommends \
     wkhtmltopdf \
     fonts-wqy-microhei \
     && rm -rf /var/lib/apt/lists/*
 
-# 复制依赖文件并安装 Python 包
+# 复制依赖文件并使用阿里云源安装 Python 包
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 
 # 复制项目代码
 COPY . /app

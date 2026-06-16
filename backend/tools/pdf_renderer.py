@@ -37,38 +37,45 @@ def convert_text_to_pdf(markdown_content: str, pdf_filename: str) -> str:
         <style>
             body {{
                 font-family: 'WenQuanYi Micro Hei', 'Noto Sans CJK SC', sans-serif;
-                font-size: 14px;
-                line-height: 1.8;
+                font-size: 14pt; /* 打印一般用 pt 做单位，14pt 看起来更舒适清晰 */
+                line-height: 1.6;
                 color: #333;
                 margin: 0 auto;
             }}
+            h1 {{ font-size: 24pt; margin-top: 24pt; margin-bottom: 12pt; }}
+            h2 {{ font-size: 20pt; margin-top: 20pt; margin-bottom: 10pt; }}
+            h3 {{ font-size: 16pt; margin-top: 16pt; margin-bottom: 8pt; }}
+            p, li {{ margin-bottom: 8pt; }}
             table {{
                 border-collapse: collapse;
                 width: 100%;
-                margin-bottom: 20px;
+                margin-bottom: 20pt;
+                font-size: 12pt; /* 表格内文字稍微小一点 */
             }}
             th, td {{
                 border: 1px solid #ddd;
-                padding: 8px;
+                padding: 8pt;
                 text-align: left;
             }}
             th {{
                 background-color: #f2f2f2;
+                font-weight: bold;
             }}
             pre {{
                 background-color: #f8f8f8;
                 border: 1px solid #ddd;
-                padding: 10px;
+                padding: 12pt;
                 overflow-x: auto;
                 border-radius: 4px;
+                font-size: 11pt; /* 代码块字体稍微小一点，防止换行太频繁 */
             }}
             code {{
                 font-family: 'Courier New', Courier, monospace;
             }}
             blockquote {{
                 border-left: 4px solid #ccc;
-                margin: 0;
-                padding-left: 16px;
+                margin: 0 0 16pt 0;
+                padding-left: 16pt;
                 color: #666;
             }}
         </style>
@@ -95,6 +102,12 @@ def convert_text_to_pdf(markdown_content: str, pdf_filename: str) -> str:
 
     try:
         pdfkit.from_string(html_template, output_path, options=options)
-        return f"转换成功！PDF 已准备就绪，保存在 {safe_filename}"
+        
+        # 从环境变量获取文件服务器的主机地址，不同 docker-compose 或不同环境可配置
+        # 默认为 host.docker.internal 方便其他容器访问宿主机映射的端口，也可自行在部署时指定
+        base_url = os.environ.get("DOWNLOAD_BASE_URL", "http://host.docker.internal:9080").rstrip('/')
+        download_url = f"{base_url}/{safe_filename}"
+        
+        return f"转换成功！PDF 已准备就绪。\n\n**📥 [点击这里下载/查看生成的 PDF]({download_url})**"
     except Exception as e:
         return f"转换失败：{str(e)}"
