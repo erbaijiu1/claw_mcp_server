@@ -37,24 +37,24 @@ def convert_text_to_pdf(markdown_content: str, pdf_filename: str) -> str:
         <style>
             body {{
                 font-family: 'WenQuanYi Micro Hei', 'Noto Sans CJK SC', sans-serif;
-                font-size: 14pt; /* 打印一般用 pt 做单位，14pt 看起来更舒适清晰 */
+                font-size: 16pt; /* 放大一号，从14pt变为16pt，更适合阅读 */
                 line-height: 1.6;
                 color: #333;
                 margin: 0 auto;
             }}
-            h1 {{ font-size: 24pt; margin-top: 24pt; margin-bottom: 12pt; }}
-            h2 {{ font-size: 20pt; margin-top: 20pt; margin-bottom: 10pt; }}
-            h3 {{ font-size: 16pt; margin-top: 16pt; margin-bottom: 8pt; }}
-            p, li {{ margin-bottom: 8pt; }}
+            h1 {{ font-size: 26pt; margin-top: 26pt; margin-bottom: 13pt; }}
+            h2 {{ font-size: 22pt; margin-top: 22pt; margin-bottom: 11pt; }}
+            h3 {{ font-size: 18pt; margin-top: 18pt; margin-bottom: 9pt; }}
+            p, li {{ margin-bottom: 10pt; }}
             table {{
                 border-collapse: collapse;
                 width: 100%;
                 margin-bottom: 20pt;
-                font-size: 12pt; /* 表格内文字稍微小一点 */
+                font-size: 14pt; /* 表格文字随之放大 */
             }}
             th, td {{
                 border: 1px solid #ddd;
-                padding: 8pt;
+                padding: 10pt; /* 单元格内边距略微放大 */
                 text-align: left;
             }}
             th {{
@@ -64,10 +64,10 @@ def convert_text_to_pdf(markdown_content: str, pdf_filename: str) -> str:
             pre {{
                 background-color: #f8f8f8;
                 border: 1px solid #ddd;
-                padding: 12pt;
+                padding: 14pt;
                 overflow-x: auto;
                 border-radius: 4px;
-                font-size: 11pt; /* 代码块字体稍微小一点，防止换行太频繁 */
+                font-size: 12pt; /* 代码块也同步放大 */
             }}
             code {{
                 font-family: 'Courier New', Courier, monospace;
