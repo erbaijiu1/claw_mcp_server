@@ -12,8 +12,8 @@ services:
       - ./data/workspace:/app/workspace
     environment:
       - TZ=Asia/Shanghai
-      # 配置生成的下载链接的主机地址。如果是其他容器访问，可用 host.docker.internal；如果直接在宿主机浏览器点开，可改为 http://127.0.0.1:9080
-      - DOWNLOAD_BASE_URL=http://host.docker.internal:9080
+      # 配置生成的下载链接的主机地址。由于合并到了网关 nginx (80端口)，地址改为 /claw_workspace
+      - DOWNLOAD_BASE_URL=http://host.docker.internal/claw_workspace
       # 数据库连接配置 (供 calendar_todo.py 使用)
       - DB_HOST=mysql_db
       - DB_PORT=3306
@@ -23,19 +23,5 @@ services:
     depends_on:
       mysql_db:
         condition: service_healthy
-    networks:
-      - web
-
-  # 新增一个轻量级的文件服务器，用来给 Openclaw 提供真实的下载链接
-  file-server:
-    image: nginx:1.23-alpine
-    container_name: claw-file-server
-    restart: unless-stopped
-    ports:
-      - "9080:80"
-    volumes:
-      - ./data/workspace:/usr/share/nginx/html:ro
-    environment:
-      - TZ=Asia/Shanghai
     networks:
       - web
