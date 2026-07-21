@@ -16,6 +16,14 @@ services:
       - TZ=Asia/Shanghai
       # 配置生成的下载链接的主机地址。如果是其他容器访问，可用 host.docker.internal；如果直接在宿主机浏览器点开，可改为 http://127.0.0.1:9080
       - DOWNLOAD_BASE_URL=http://host.docker.internal:9080
+      # 数据库连接配置 (供 calendar_todo.py 使用)
+      - DB_HOST=mysql_db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=Gmcc@123
+      - DB_NAME=openclaw_mcp
+    networks:
+      - web
 
   # 新增一个轻量级的文件服务器，用来给 Openclaw 提供真实的下载链接
   file-server:
@@ -28,3 +36,5 @@ services:
       - ./data/workspace:/usr/share/nginx/html:ro
     environment:
       - TZ=Asia/Shanghai
+    networks:
+      - web

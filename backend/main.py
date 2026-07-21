@@ -1,5 +1,12 @@
 from mcp.server.fastmcp import FastMCP
 from tools.pdf_renderer import convert_text_to_pdf
+from tools.calendar_todo import (
+    get_daily_briefing,
+    create_task,
+    update_task,
+    query_tasks,
+    get_task_history
+)
 
 # 初始化统一的 FastMCP 服务
 # 指定聚合服务名为 ClawMCPServer，并在此处绑定 0.0.0.0:9000
@@ -26,8 +33,79 @@ async def render_markdown_to_pdf(markdown_content: str = "", pdf_filename: str =
     return await asyncio.to_thread(convert_text_to_pdf, markdown_content, pdf_filename)
 
 # 如果未来有其他的接口，可以直接引入并注册
-# @mcp.tool()
-# def other_tool(...): ...
+@mcp.tool()
+async def mcp_get_daily_briefing(date: str = None) -> dict:
+    """
+    获取每日简报 (核心工具)。
+    OpenClaw 每天早上或当用户问“今天有什么安排”时，优先调用这个接口。
+    
+    Args:
+        date (str, optional): 日期 (YYYY-MM-DD格式)，默认为今天。
+        
+    Returns:
+        dict: 包含逾期任务、今日任务和高优先级任务的聚合结果。
+    """
+    return await asyncio.to_thread(get_daily_briefing, date)
+
+@mcp.tool()
+async def mcp_create_task(title: str, description: str = None, due_date: str = None, priority: str = "P2-中", category: str = "WORK", tags: list = None) -> dict:
+    """
+    创建新待办/备忘任务。
+    
+    Args:
+        title (str): 必填，待办标题 (简短清晰)。
+        description (str, optional): 详细说明。
+        due_date (str, optional): 截止日期 (YYYY-MM-DD 格式，需自动解析如“下周三”的具体日期填入)。
+        priority (str, optional): 优先级 (如: P0-紧急, P1-高, P2-中, P3-低)。默认为 P2-中。
+        category (str, optional): 分类大类，默认 WORK。建议使用如 WORK, LIFE, STUDY, PERSONAL 等。
+        tags (list, optional): 多标签数组，如 ["报销", "重要"]。
+    """
+    return await asyncio.to_thread(create_task, title, description, due_date, priority, category, tags)
+
+@mcp.tool()
+async def mcp_update_task(task_id: str, status: str = None, due_date: str = None, priority: str = None, title: str = None, description: str = None, category: str = None, tags: list = None) -> dict:
+    """
+    更新或延期待办任务。
+    满足“调整结束日期”、“标记完成”的需求。
+    
+    Args:
+        task_id (str): 必填，任务唯一标识。
+        status (str, optional): 状态 (TODO, IN_PROGRESS, DONE, CANCELLED)。
+        due_date (str, optional): 截止日期 (YYYY-MM-DD)。
+        priority (str, optional): 优先级。
+        title (str, optional): 新标题。
+        description (str, optional): 新描述。
+        category (str, optional): 分类大类。
+        tags (list, optional): 多标签数组。
+    """
+    return await asyncio.to_thread(update_task, task_id, status, due_date, priority, title, description, category, tags)
+
+@mcp.tool()
+async def mcp_query_tasks(status: str = None, priority: str = None, category: str = None, tag: str = None, keyword: str = None, is_overdue: bool = None) -> list:
+    """
+    多条件条件查询任务。
+    用于查找特定任务，例如所有还在拖延的中等优先级任务。
+    
+    Args:
+        status (str, optional): 状态 (TODO, IN_PROGRESS, DONE, CANCELLED)。
+        priority (str, optional): 优先级。
+        category (str, optional): 按大类过滤 (如 WORK, LIFE)。
+        tag (str, optional): 包含特定标签。
+        keyword (str, optional): 搜索关键字(匹配标题和描述)。
+        is_overdue (bool, optional): 是否逾期。
+    """
+    return await asyncio.to_thread(query_tasks, status, priority, category, tag, keyword, is_overdue)
+
+@mcp.tool()
+async def mcp_get_task_history(task_id: str) -> list:
+    """
+    查看任务变更历史。
+    满足追踪溯源需求，如查询任务推迟了几次。
+    
+    Args:
+        task_id (str): 必填，任务唯一标识。
+    """
+    return await asyncio.to_thread(get_task_history, task_id)
 
 if __name__ == "__main__":
     # 使用 SSE 模式运行
