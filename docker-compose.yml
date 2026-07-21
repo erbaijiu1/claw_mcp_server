@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   claw-mcp-server:
     build: ./backend
@@ -22,12 +20,15 @@ services:
       - DB_USER=root
       - DB_PASSWORD=Gmcc@123
       - DB_NAME=openclaw_mcp
+    depends_on:
+      mysql_db:
+        condition: service_healthy
     networks:
       - web
 
   # 新增一个轻量级的文件服务器，用来给 Openclaw 提供真实的下载链接
   file-server:
-    image: nginx:alpine
+    image: nginx:1.23-alpine
     container_name: claw-file-server
     restart: unless-stopped
     ports:

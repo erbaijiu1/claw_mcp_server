@@ -1,4 +1,4 @@
-FROM python:3.10-slim-bullseye
+FROM docker.1ms.run/library/python:3.10-slim-bullseye
 
 # 设置工作目录
 WORKDIR /app
