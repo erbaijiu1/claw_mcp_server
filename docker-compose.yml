@@ -10,10 +10,12 @@ services:
       - ./backend:/app
       # 将宿主机的 data/workspace 目录映射到容器的 /app/workspace
       - ./data/workspace:/app/workspace
+    env_file:
+      - .env
     environment:
       - TZ=Asia/Shanghai
-      # 生成的文件统一通过生产环境全局 Nginx 下载
-      - DOWNLOAD_BASE_URL=https://www.yjhcai.cn/claw_workspace
+      # 生成的文件统一通过生产环境全局 Nginx 下载，可通过 .env 覆盖为本地地址 (如 http://localhost:9000/workspace)
+      - DOWNLOAD_BASE_URL=${DOWNLOAD_BASE_URL:-https://www.yjhcai.cn/claw_workspace}
       # 数据库连接配置 (供 calendar_todo.py 使用)
       - DB_HOST=mysql_db
       - DB_PORT=3306
