@@ -12,8 +12,8 @@ services:
       - ./data/workspace:/app/workspace
     environment:
       - TZ=Asia/Shanghai
-      # 配置生成的下载链接的主机地址。由于合并到了网关 nginx (80端口)，地址改为 /claw_workspace
-      - DOWNLOAD_BASE_URL=http://host.docker.internal/claw_workspace
+      # 生成的文件统一通过生产环境全局 Nginx 下载
+      - DOWNLOAD_BASE_URL=https://www.yjhcai.cn/claw_workspace
       # 数据库连接配置 (供 calendar_todo.py 使用)
       - DB_HOST=mysql_db
       - DB_PORT=3306
