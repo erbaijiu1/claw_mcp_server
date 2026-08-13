@@ -2,7 +2,7 @@ import os
 import uuid
 import json
 import pymysql
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Database Configuration
 DB_HOST = os.environ.get("DB_HOST", "host.docker.internal")
@@ -127,6 +127,64 @@ def get_daily_briefing(date_str: str = None) -> dict:
                 "date": date_str,
                 "overdue_tasks": format_tasks(overdue_tasks),
                 "today_tasks": format_tasks(today_tasks),
+                "high_priority_tasks": format_tasks(high_priority_tasks)
+            }
+    finally:
+        conn.close()
+
+def get_next_n_days_briefing(date_str: str = None, days: int = 7) -> dict:
+    """
+    Get a briefing of tasks for the next N days, including overdue, upcoming N days, and high-priority tasks.
+    """
+    if not date_str:
+        date_str = datetime.now().strftime("%Y-%m-%d")
+        
+    start_date = datetime.strptime(date_str, "%Y-%m-%d")
+    end_date = start_date + timedelta(days=max(0, days - 1))
+    end_date_str = end_date.strftime("%Y-%m-%d")
+        
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            # Overdue tasks (due date < date_str and not done/cancelled)
+            cursor.execute("""
+                SELECT * FROM tasks 
+                WHERE due_date < %s AND status NOT IN ('DONE', 'CANCELLED')
+            """, (date_str,))
+            overdue_tasks = cursor.fetchall()
+            
+            # Next N days' tasks
+            cursor.execute("""
+                SELECT * FROM tasks 
+                WHERE due_date >= %s AND due_date <= %s AND status NOT IN ('DONE', 'CANCELLED')
+                ORDER BY due_date ASC
+            """, (date_str, end_date_str))
+            upcoming_tasks = cursor.fetchall()
+            
+            # High priority tasks (P0 or P1)
+            cursor.execute("""
+                SELECT * FROM tasks 
+                WHERE priority IN ('P0-紧急', 'P1-高') AND status NOT IN ('DONE', 'CANCELLED')
+            """, ())
+            high_priority_tasks = cursor.fetchall()
+            
+            # Helper to convert dates to string
+            def format_tasks(task_list):
+                for task in task_list:
+                    if task.get('due_date'):
+                        task['due_date'] = str(task['due_date'])
+                    if task.get('created_at'):
+                        task['created_at'] = str(task['created_at'])
+                    if task.get('updated_at'):
+                        task['updated_at'] = str(task['updated_at'])
+                return task_list
+                
+            return {
+                "start_date": date_str,
+                "end_date": end_date_str,
+                "days": days,
+                "overdue_tasks": format_tasks(overdue_tasks),
+                "upcoming_tasks": format_tasks(upcoming_tasks),
                 "high_priority_tasks": format_tasks(high_priority_tasks)
             }
     finally:

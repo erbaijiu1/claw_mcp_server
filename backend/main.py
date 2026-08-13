@@ -2,6 +2,7 @@ from mcp.server.fastmcp import FastMCP
 from tools.pdf_renderer import convert_text_to_pdf
 from tools.calendar_todo import (
     get_daily_briefing,
+    get_next_n_days_briefing,
     create_task,
     update_task,
     query_tasks,
@@ -46,6 +47,21 @@ async def mcp_get_daily_briefing(date: str = None) -> dict:
         dict: 包含逾期任务、今日任务和高优先级任务的聚合结果。
     """
     return await asyncio.to_thread(get_daily_briefing, date)
+
+@mcp.tool()
+async def mcp_get_next_n_days_briefing(date: str = None, days: int = 7) -> dict:
+    """
+    获取未来 N 天简报 (核心工具)。
+    OpenClaw 当用户问“未来几天有什么安排”、“这周安排”或“未来N天安排”时，调用这个接口。
+    
+    Args:
+        date (str, optional): 开始日期 (YYYY-MM-DD格式)，默认为今天。
+        days (int, optional): 想要查询的未来天数，默认为 7。
+        
+    Returns:
+        dict: 包含逾期任务、未来N天任务和高优先级任务的聚合结果。
+    """
+    return await asyncio.to_thread(get_next_n_days_briefing, date, days)
 
 @mcp.tool()
 async def mcp_create_task(title: str, description: str = None, due_date: str = None, priority: str = "P2-中", category: str = "WORK", tags: list = None) -> dict:
